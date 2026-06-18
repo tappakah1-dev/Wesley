@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$WESLEY | The Messi GOAT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --arg-blue: #74ACDF;
+            --neon-cyan: #00FFFF;
+            --dark-bg: #050a15;
+            --panel-bg: rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, th {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* Hero Banner Section */
+        .banner-container {
+            width: 100%;
+            position: relative;
+            border-bottom: 2px solid var(--neon-cyan);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .banner-container img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Contract Address Box */
+        .ca-container {
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
+            padding: 0 20px;
+        }
+
+        .ca-box {
+            background: rgba(5, 10, 21, 0.9);
+            border: 2px solid var(--arg-blue);
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            font-family: monospace;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(116, 172, 223, 0.5);
+            word-break: break-all;
+            max-width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ca-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        }
+
+        .ca-box span {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        /* Lore Section */
+        .lore-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            padding: 60px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .lore-img-wrapper {
+            position: relative;
+        }
+
+        .lore-img-wrapper img {
+            width: 320px;
+            max-width: 100%;
+            border-radius: 15px;
+            border: 3px solid var(--neon-cyan);
+            box-shadow: 0 0 35px rgba(0, 255, 255, 0.6);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); box-shadow: 0 15px 40px rgba(0, 255, 255, 0.8); }
+            100% { transform: translateY(0px); }
+        }
+
+        .lore-text {
+            flex: 1;
+            min-width: 300px;
+            text-align: left;
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 4px solid var(--arg-blue);
+        }
+
+        .lore-text h2 {
+            color: var(--arg-blue);
+            font-size: 3.5rem;
+            line-height: 1;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(116, 172, 223, 0.5);
+        }
+
+        .lore-text p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #d1e8ff;
+        }
+
+        /* World Cup Schedule Section */
+        .schedule-section {
+            padding: 60px 20px;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, #0a142e 100%);
+            border-top: 1px solid rgba(116, 172, 223, 0.2);
+        }
+
+        .schedule-section h2 {
+            font-size: 3rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .schedule-section h2 span {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+
+        .schedule-section p.subtitle {
+            color: var(--arg-blue);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .table-container {
+            max-width: 900px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+        }
+
+        .schedule-table th, .schedule-table td {
+            padding: 20px;
+            border-bottom: 1px solid rgba(116, 172, 223, 0.2);
+            white-space: nowrap;
+        }
+
+        .schedule-table th {
+            background: var(--arg-blue);
+            color: #000;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+        }
+
+        .schedule-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .schedule-table tr:hover {
+            background: rgba(116, 172, 223, 0.1);
+        }
+
+        /* Status Colors */
+        .status-played {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .status-upcoming {
+            color: #ffcc00;
+            font-style: italic;
+        }
+        .score-win {
+            color: var(--neon-cyan);
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+        }
+        .highlight-row {
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: var(--neon-cyan);
+            color: #000;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            font-weight: bold;
+            transform: translateX(-50%);
+            font-family: 'Oswald', sans-serif;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+
+        /* PFP Generator Section */
+        .pfp-section {
+            padding: 60px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(10, 20, 46, 0.8) 0%, var(--dark-bg) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+        }
+        .pfp-section h2 {
+            font-size: 3rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .pfp-section h2 span {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+        .pfp-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .pfp-controls input {
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            border: 2px solid var(--arg-blue);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            outline: none;
+            font-family: 'Roboto', sans-serif;
+            width: 300px;
+            max-width: 100%;
+        }
+        .pfp-controls input:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        .pfp-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            background: var(--neon-cyan);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-family: 'Oswald', sans-serif;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .pfp-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        .pfp-btn:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .canvas-container {
+            margin: 20px auto;
+            max-width: 400px;
+            position: relative;
+        }
+        #pfpCanvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            background: #111;
+            display: none; /* Hidden until generated */
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+        }
+        #pfpStatus {
+            color: var(--arg-blue);
+            margin-top: 15px;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 5px solid rgba(0, 255, 255, 0.1);
+            border-top: 5px solid var(--neon-cyan);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            padding: 30px;
+            background: #02040a;
+            color: #555;
+            font-size: 1rem;
+            border-top: 2px solid #112244;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart-section h2 {
+            font-size: 3rem;
+            color: #ffffff;
+            margin-bottom: 30px;
+        }
+        .chart-section h2 span {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+        #dexscreener-embed {
+            position: relative;
+            width: 100%;
+            padding-bottom: 125%;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+            background: var(--panel-bg);
+        }
+        @media(min-width: 1400px) {
+            #dexscreener-embed {
+                padding-bottom: 65%;
+            }
+        }
+        #dexscreener-embed iframe {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border: 0;
+        }
+
+        @media (max-width: 768px) {
+            .lore-text h2 { font-size: 2.5rem; }
+            .schedule-section h2 { font-size: 2.2rem; }
+            .ca-box { font-size: 0.9rem; padding: 10px 20px; }
+            .schedule-table th, .schedule-table td { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero / Banner -->
+    <div class="banner-container">
+        <img src="https://i.ibb.co/4wryr4h2/Gemini-Generated-Image-wczzv0wczzv0wczz.png" alt="$WESLEY Community Take Over Banner">
+    </div>
+
+    <!-- Contract Address -->
+    <div class="ca-container">
+        <div class="ca-box" onclick="copyCA()" title="Click to copy CA">
+            <span>CA:</span> <span id="ca-text" style="color: var(--neon-cyan); font-weight: normal;">CeSQAsN3WLSHCuRHDrhaL5iXRfFLiWXcfbjSFStipump</span>
+        </div>
+    </div>
+
+    <div id="toast">Contract Address Copied!</div>
+
+    <!-- Lore Section -->
+    <div class="lore-section">
+        <div class="lore-img-wrapper">
+            <img src="https://i.ibb.co/zT5Lxx88/wesley.jpg" alt="$WESLEY The Messi GOAT">
+        </div>
+        <div class="lore-text">
+            <h2>$WESLEY THE MESSI GOAT</h2>
+            <p>The aura is undeniable. The presence is legendary. Meet <strong>$WESLEY</strong>, the goat who embodies the spirit of the greatest to ever touch the pitch.</p>
+            <p>Wrapped in the iconic light blue and white stripes, radiating pure cyan energy, Wesley isn't just a meme coin—it's a community takeover. Powered by the passion of the fans and the relentless drive of a World Champion, $WESLEY is here to dominate the Solana blockchain just like Argentina dominates the world stage.</p>
+        </div>
+    </div>
+
+    <!-- PFP Generator Section -->
+    <div class="pfp-section">
+        <h2>GOATIFY YOUR <span>PFP</span></h2>
+        <p>Enter your X (Twitter) handle to generate your official $WESLEY GOAT Profile Picture!</p>
+        
+        <div class="pfp-controls">
+            <input type="text" id="twitterHandle" placeholder="@username" autocomplete="off">
+            <button class="pfp-btn" id="generatePfpBtn" onclick="generatePFP()">Generate</button>
+        </div>
+        
+        <div class="canvas-container">
+            <div id="pfpLoader" class="loader"></div>
+            <canvas id="pfpCanvas" width="400" height="400"></canvas>
+            <div id="pfpStatus"></div>
+            <button class="pfp-btn" id="downloadPfpBtn" onclick="downloadPFP()" style="display: none; margin-top: 20px; width: 100%;">Download PFP</button>
+        </div>
+    </div>
+
+    <!-- World Championship Timetable -->
+    <div class="schedule-section">
+        <h2>2026 WORLD CHAMPIONSHIP <span>SCHEDULE</span></h2>
+        <p class="subtitle">Group J - The Road to Back-to-Back Glory</p>
+        
+        <div class="table-container">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Matchup</th>
+                        <th>Status</th>
+                        <th>Score / Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight-row">
+                        <td>June 16, 2026</td>
+                        <td><strong>Argentina</strong> vs Algeria</td>
+                        <td class="status-played">Played</td>
+                        <td class="score-win">3 - 0 (W) <br><small style="color:#aaa; font-size:0.8rem; font-weight:normal;">Messi Hat-Trick!</small></td>
+                    </tr>
+                    <tr>
+                        <td>June 22, 2026</td>
+                        <td><strong>Argentina</strong> vs Austria</td>
+                        <td class="status-upcoming">Upcoming</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>June 28, 2026</td>
+                        <td>Jordan vs <strong>Argentina</strong></td>
+                        <td class="status-upcoming">Upcoming</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+        <h2>LIVE <span>CHART</span></h2>
+        <div id="dexscreener-embed">
+            <iframe src="https://dexscreener.com/solana/ATEQxBQYrxV4ruiV3CZgR28Pu6qPmzqbBCBzkxPs2yBj?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=15"></iframe>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>$WESLEY The Messi GOAT &copy; 2026. A Community Take Over on Solana.</p>
+    </footer>
+
+    <script>
+        function copyCA() {
+            const caText = document.getElementById("ca-text").innerText;
+            
+            // Create a temporary textarea element
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = caText;
+            document.body.appendChild(tempTextArea);
+            
+            // Select and copy
+            tempTextArea.select();
+            document.execCommand("copy");
+            
+            // Remove the temporary element
+            document.body.removeChild(tempTextArea);
+            
+            // Show toast notification
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        // --- PFP Generator Logic (AI Powered) ---
+        const apiKey = ""; // API key is securely injected by the execution environment
+        const canvas = document.getElementById('pfpCanvas');
+        const ctx = canvas.getContext('2d');
+        const generateBtn = document.getElementById('generatePfpBtn');
+        const downloadBtn = document.getElementById('downloadPfpBtn');
+        const usernameInput = document.getElementById('twitterHandle');
+        const statusText = document.getElementById('pfpStatus');
+        const loader = document.getElementById('pfpLoader');
+
+        // Exponential backoff retry logic for API calls
+        async function fetchWithRetry(url, options, retries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await new Promise(res => setTimeout(res, delays[i]));
+                }
+            }
+        }
+
+        function generatePFP() {
+            let username = usernameInput.value.trim();
+            if(!username) {
+                statusText.innerText = "Please enter a username!";
+                return;
+            }
+            if(username.startsWith('@')) username = username.substring(1);
+
+            // Set UI to loading state
+            statusText.innerText = "Fetching profile and initializing AI...";
+            generateBtn.disabled = true;
+            canvas.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            loader.style.display = 'block';
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = `https://unavatar.io/x/${username}?fallback=https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png&size=400`;
+
+            img.onload = async () => {
+                try {
+                    // 1. Get Base64 of the original PFP
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 400;
+                    tempCanvas.height = 400;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.drawImage(img, 0, 0, 400, 400);
+                    // Extract base64 string without the prefix
+                    const base64Original = tempCanvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+                    statusText.innerText = "AI is redesigning you as the GOAT... This takes a few seconds.";
+
+                    // 2. Prepare payload for Gemini API
+                    // UPDATED PROMPT: Strictly enforce keeping the original face.
+                    const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
+
+                    const payload = {
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: "image/jpeg", data: base64Original } }
+                            ]
+                        }],
+                        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+                    };
+
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+                    
+                    // 3. Call the API
+                    const result = await fetchWithRetry(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // 4. Extract generated image
+                    const aiBase64 = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+                    if (!aiBase64) {
+                        throw new Error("No image data returned from AI");
+                    }
+
+                    // 5. Draw the AI image to the canvas
+                    const aiImg = new Image();
+                    aiImg.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(aiImg, 0, 0, 400, 400);
+
+                        // Add Cyan Neon Border
+                        ctx.lineWidth = 20;
+                        ctx.strokeStyle = '#00FFFF';
+                        ctx.strokeRect(0, 0, 400, 400);
+
+                        // Add Watermark Text
+                        ctx.fillStyle = '#00FFFF';
+                        ctx.font = 'bold 20px Oswald';
+                        ctx.textAlign = 'right';
+                        ctx.shadowColor = '#000';
+                        ctx.shadowBlur = 10;
+                        ctx.fillText('$WESLEY', 380, 30);
+
+                        // Restore UI
+                        loader.style.display = 'none';
+                        canvas.style.display = 'block';
+                        statusText.innerText = "GOAT PFP Generated Successfully!";
+                        downloadBtn.style.display = 'inline-block';
+                        generateBtn.disabled = false;
+                    };
+                    aiImg.src = `data:image/jpeg;base64,${aiBase64}`;
+
+                } catch (error) {
+                    console.error("Generation Error:", error);
+                    loader.style.display = 'none';
+                    statusText.innerText = "AI Generation failed. The network might be busy.";
+                    generateBtn.disabled = false;
+                }
+            };
+
+            img.onerror = () => {
+                loader.style.display = 'none';
+                statusText.innerText = "Error loading profile. Is the X handle correct?";
+                generateBtn.disabled = false;
+            };
+        }
+
+        function downloadPFP() {
+            const link = document.createElement('a');
+            link.download = 'wesley_goat_pfp.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+    </script>
+</body>
+</html>
