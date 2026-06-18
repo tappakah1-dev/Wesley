@@ -526,7 +526,7 @@
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- PFP Generator Logic (AI Powered via Fal.ai) ---
+        // --- PFP Generator Logic (AI Powered via Gemini Imagen) ---
         const canvas = document.getElementById('pfpCanvas');
         const ctx = canvas.getContext('2d');
         const generateBtn = document.getElementById('generatePfpBtn');
@@ -585,7 +585,7 @@
                     tempCtx.drawImage(img, 0, 0, 400, 400);
                     const base64Original = tempCanvas.toDataURL('image/jpeg', 0.9).split(',')[1];
 
-                    statusText.innerText = "AI is redesigning you as the GOAT... This takes a few seconds.";
+                    statusText.innerText = "Gemini is GOATifying you... This takes a few seconds.";
 
                     // 2. Call our Vercel Serverless Function
                     const url = '/api/generate-pfp';
