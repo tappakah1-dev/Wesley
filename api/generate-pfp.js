@@ -1,3 +1,10 @@
+// Vercel Serverless Function Configuration
+export const config = {
+    // Force this function to run in the US East (Washington, D.C.) region 
+    // to bypass potential regional blocks or restrictions on Google's Imagen API.
+    regions: ['iad1'], 
+};
+
 export default async function handler(req, res) {
     // Enable CORS (Cross-Origin Resource Sharing) headers
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -19,13 +26,13 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Securely grab the Fal.ai API key from Vercel's Environment Variables
-    const apiKey = process.env.FAL_KEY;
+    // Securely grab the Gemini API key from Vercel's Environment Variables
+    const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
         return res.status(500).json({ 
-            error: 'Server configuration error: FAL_KEY environment variable is missing on Vercel.',
-            debugDetails: 'Please ensure you added FAL_KEY under Settings > Environment Variables in your Vercel project and redeployed.'
+            error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.',
+            debugDetails: 'Please ensure you added GEMINI_API_KEY (starting with AIzaSy) under Settings > Environment Variables in your Vercel project and redeployed.'
         });
     }
 
@@ -45,93 +52,62 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided in the request body.' });
         }
 
-        // Highly descriptive, powerful prompt optimized for Flux's natural language comprehension
-        const prompt = "A highly detailed, professional sports portrait of the person from the input image. They are wearing large, realistic curved silver goat horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. They are standing in a dramatic, glowing football stadium at night with cheering crowds, intense neon cyan lighting, and an electric aura. Maintain the exact face structure, features, expression, and identity of the person, but completely transform their clothes and background.";
-        
-        // Negative prompt to ensure clean rendering on Flux
-        const negativePrompt = "blurry, low quality, distorted face, deformed features, bad anatomy";
+        // Descriptive prompt optimized for Gemini's high-fidelity photorealism guidelines
+        const prompt = "A highly detailed, epic professional sports portrait of the person. They are wearing majestic large curved silver goat horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. The background is a dramatic, glowing football stadium at night with cheering crowds, intense neon cyan lighting, and an electric aura. The image should retain the exact face direction, pose, features, expression, and identity of the person, but replace their clothes and background completely.";
 
-        // Swapped to the highly-advanced, state-of-the-art fal-ai/flux/dev/image-to-image model
-        const response = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
-            method: "POST",
-            headers: {
-                "Authorization": `Key ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                image_url: `data:image/jpeg;base64,${image}`,
-                prompt: prompt,
-                negative_prompt: negativePrompt,
-                strength: 0.75, // Perfect sweet-spot for Flux: replaces background/clothing while keeping the face recognizable
-                guidance_scale: 7.5,
-                num_inference_steps: 30
-            })
+        // Format payload specifically for the Imagen 3 predict endpoint
+        const payload = {
+            instances: [
+                {
+                    prompt: prompt,
+                    image: {
+                        bytesBase64Encoded: image
+                    }
+                }
+            ],
+            parameters: {
+                sampleCount: 1,
+                aspectRatio: "1:1",
+                outputMimeType: "image/jpeg"
+            }
+        };
+
+        // Standard production-supported Imagen 3.0 endpoint in Google AI Studio
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+        
+        // Forward the request to Google's Imagen API
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
-            const errorDetails = await response.text();
-            throw new Error(`Fal.ai API responded with status ${response.status}: ${errorDetails}`);
+            let errorDetails = '';
+            try {
+                const errJson = await response.json();
+                errorDetails = JSON.stringify(errJson);
+            } catch (e) {
+                errorDetails = await response.text();
+            }
+            throw new Error(`Google Imagen API responded with status ${response.status}: ${errorDetails}`);
         }
 
-        let result = await response.json();
+        const result = await response.json();
+        // Extract base64 image data from predictions array
+        const generatedImage = result.predictions?.[0]?.bytesBase64Encoded;
 
-        // Fallback: If Fal.ai forces the request into a queue, we poll the queue status until complete
-        if (result.status === "IN_QUEUE" || result.status_url) {
-            const statusUrl = result.status_url;
-            const responseUrl = result.response_url;
-            let completed = false;
-            let attempts = 0;
-            const maxAttempts = 20; // Flux Dev might take a few seconds longer, so we extend wait time
-
-            while (!completed && attempts < maxAttempts) {
-                // Wait 1 second between checks
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                attempts++;
-
-                const statusResponse = await fetch(statusUrl, {
-                    headers: { "Authorization": `Key ${apiKey}` }
-                });
-
-                if (statusResponse.ok) {
-                    const statusData = await statusResponse.json();
-                    if (statusData.status === "COMPLETED") {
-                        completed = true;
-                    } else if (statusData.status === "FAILED") {
-                        throw new Error(`Fal.ai generation failed inside the processing queue.`);
-                    }
-                }
-            }
-
-            if (!completed) {
-                throw new Error("Fal.ai processing queue timed out (took longer than 20 seconds).");
-            }
-
-            // Fetch the final finished output once queue is completed
-            const finalResponse = await fetch(responseUrl, {
-                headers: { "Authorization": `Key ${apiKey}` }
-            });
-            if (!finalResponse.ok) {
-                throw new Error("Failed to retrieve final image payload from Fal.ai queue.");
-            }
-            result = await finalResponse.json();
+        if (!generatedImage) {
+            throw new Error(`No image returned from Gemini/Imagen. Full response: ${JSON.stringify(result)}`);
         }
 
-        const imageUrl = result.images?.[0]?.url;
-
-        if (!imageUrl) {
-            throw new Error(`No image URL returned from Fal.ai. Full API response: ${JSON.stringify(result)}`);
-        }
-
-        // Fetch the generated image and convert it directly to Base64 (safely wrapped in Uint8Array)
-        const imgBuffer = await fetch(imageUrl).then(res => res.arrayBuffer());
-        const base64Image = Buffer.from(new Uint8Array(imgBuffer)).toString('base64');
-
-        res.status(200).json({ generatedImage: base64Image });
+        // Send the secure image back to the frontend
+        res.status(200).json({ generatedImage });
 
     } catch (error) {
         console.error("API Route Error:", error);
         res.status(500).json({ 
-            error: 'Failed to generate image on the server using Fal.ai.', 
+            error: 'Failed to generate image on the server using Gemini.', 
             message: error.message || error.toString() 
         });
     }
