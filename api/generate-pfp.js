@@ -47,7 +47,8 @@ export default async function handler(req, res) {
             generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
         };
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+        // Swapped to standard, production-supported gemini-2.5-flash model
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
         // Forward the request to Google
         const response = await fetch(url, {
