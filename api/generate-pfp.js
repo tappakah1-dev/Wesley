@@ -1,4 +1,19 @@
 export default async function handler(req, res) {
+    // Enable CORS (Cross-Origin Resource Sharing) headers
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+
     // Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
@@ -8,7 +23,10 @@ export default async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
-        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.' });
+        return res.status(500).json({ 
+            error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.',
+            debugDetails: 'Please ensure you added GEMINI_API_KEY under Settings > Environment Variables in your Vercel project and redeployed.'
+        });
     }
 
     const { image } = req.body;
@@ -39,7 +57,13 @@ export default async function handler(req, res) {
         });
 
         if (!response.ok) {
-            const errorDetails = await response.text();
+            let errorDetails = '';
+            try {
+                const errJson = await response.json();
+                errorDetails = JSON.stringify(errJson);
+            } catch (e) {
+                errorDetails = await response.text();
+            }
             throw new Error(`Google API responded with status ${response.status}: ${errorDetails}`);
         }
 
@@ -56,6 +80,9 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error("API Route Error:", error);
         // Forward the explicit error message to the frontend for easy debugging
-        res.status(500).json({ error: error.message || error.toString() });
+        res.status(500).json({ 
+            error: 'Failed to generate image on the server.', 
+            message: error.message || error.toString() 
+        });
     }
 }
