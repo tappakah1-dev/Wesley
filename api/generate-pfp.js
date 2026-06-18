@@ -37,20 +37,27 @@ export default async function handler(req, res) {
     try {
         const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
 
+        // Format payload specifically for the Imagen predict endpoint
         const payload = {
-            contents: [{
-                parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: "image/jpeg", data: image } }
-                ]
-            }],
-            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+            instances: [
+                {
+                    prompt: prompt,
+                    image: {
+                        bytesBase64Encoded: image
+                    }
+                }
+            ],
+            parameters: {
+                sampleCount: 1,
+                aspectRatio: "1:1",
+                outputMimeType: "image/jpeg"
+            }
         };
 
-        // Swapped to standard, production-supported gemini-2.5-flash model
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // Standard, production-supported Imagen 3.0 endpoint in Google AI Studio
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
         
-        // Forward the request to Google
+        // Forward the request to Google's Imagen API
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -65,14 +72,15 @@ export default async function handler(req, res) {
             } catch (e) {
                 errorDetails = await response.text();
             }
-            throw new Error(`Google API responded with status ${response.status}: ${errorDetails}`);
+            throw new Error(`Google Imagen API responded with status ${response.status}: ${errorDetails}`);
         }
 
         const result = await response.json();
-        const generatedImage = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+        // Extract base64 image data from predictions array
+        const generatedImage = result.predictions?.[0]?.bytesBase64Encoded;
 
         if (!generatedImage) {
-            throw new Error("No image returned from Gemini. Response structure might have changed or generation was blocked by safety filters.");
+            throw new Error("No image returned from Gemini/Imagen. The generation request may have failed safety checks or returned empty.");
         }
 
         // Send the secure image back to the frontend
