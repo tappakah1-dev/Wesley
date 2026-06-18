@@ -45,9 +45,10 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided in the request body.' });
         }
 
-        const prompt = "Preserve the facial features and head orientation of the person in the input image. Add a high-quality, artistic, decorative silver goat horns accessory on their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
+        // Restructured prompt: Highlight major modifications first so the AI prioritizes them, then retain likeness
+        const prompt = "A high-quality digital masterpiece portrait of the person in the input image, styled as a soccer superstar. They are wearing majestic, highly-detailed silver goat horns growing from their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. They are surrounded by an intense glowing neon cyan aura. Epic lighting, realistic portrait photography, retaining their facial structure and likeness.";
 
-        // 1. Swapped endpoint to fal.run (synchronous) instead of queue.fal.run (asynchronous)
+        // Call the dedicated image-to-image endpoint synchronously
         const response = await fetch("https://fal.run/fal-ai/fast-sdxl/image-to-image", {
             method: "POST",
             headers: {
@@ -57,7 +58,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
-                strength: 0.45 // Keeps 55% of the original facial likeness while adding horns, jersey & glow
+                strength: 0.70 // Increased to 0.70 to give the AI enough structural freedom to add horns and jersey while keeping your face shape
             })
         });
 
@@ -68,7 +69,7 @@ export default async function handler(req, res) {
 
         let result = await response.json();
 
-        // 2. Fallback: If Fal.ai forces the request into a queue, we poll the queue status until complete
+        // Fallback: If Fal.ai forces the request into a queue, we poll the queue status until complete
         if (result.status === "IN_QUEUE" || result.status_url) {
             const statusUrl = result.status_url;
             const responseUrl = result.response_url;
