@@ -330,6 +330,8 @@
             margin-top: 15px;
             font-style: italic;
             font-size: 1.1rem;
+            word-wrap: break-word;
+            padding: 0 10px;
         }
 
         /* Loading Spinner */
@@ -524,12 +526,7 @@
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- PFP Generator Logic (AI Powered) ---
-        // The empty string below allows the Canvas to inject its secure key for previewing.
-        // When deployed to Vercel, it will remain empty, triggering the code 
-        // to securely route the request through your Vercel Serverless Function instead.
-        const canvasApiKey = ""; 
-        
+        // --- PFP Generator Logic (AI Powered via Fal.ai) ---
         const canvas = document.getElementById('pfpCanvas');
         const ctx = canvas.getContext('2d');
         const generateBtn = document.getElementById('generatePfpBtn');
@@ -544,10 +541,13 @@
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, options);
+                    const isJson = response.headers.get('content-type')?.includes('application/json');
+                    const data = isJson ? await response.json() : await response.text();
+                    
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(data.message || data.error || `HTTP error! status: ${response.status}`);
                     }
-                    return await response.json();
+                    return data;
                 } catch (e) {
                     if (i === retries - 1) throw e;
                     await new Promise(res => setTimeout(res, delays[i]));
@@ -572,71 +572,49 @@
 
             const img = new Image();
             img.crossOrigin = "Anonymous";
+            // Get original avatar via unavatar
             img.src = `https://unavatar.io/x/${username}?fallback=https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png&size=400`;
 
             img.onload = async () => {
                 try {
-                    // 1. Get Base64 of the original PFP
+                    // 1. Get Base64 of original PFP
                     const tempCanvas = document.createElement('canvas');
                     tempCanvas.width = 400;
                     tempCanvas.height = 400;
                     const tempCtx = tempCanvas.getContext('2d');
                     tempCtx.drawImage(img, 0, 0, 400, 400);
-                    // Extract base64 string without the prefix
                     const base64Original = tempCanvas.toDataURL('image/jpeg', 0.9).split(',')[1];
 
                     statusText.innerText = "AI is redesigning you as the GOAT... This takes a few seconds.";
 
-                    let url, payload;
-
-                    if (canvasApiKey) {
-                        // Canvas Environment: Use injected key to call Google API directly
-                        const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
-
-                        payload = {
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inlineData: { mimeType: "image/jpeg", data: base64Original } }
-                                ]
-                            }],
-                            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-                        };
-                        url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${canvasApiKey}`;
-                    } else {
-                        // Vercel Environment: Call your secure backend API route
-                        url = '/api/generate-pfp';
-                        payload = { image: base64Original };
-                    }
+                    // 2. Call our Vercel Serverless Function
+                    const url = '/api/generate-pfp';
+                    const payload = { image: base64Original };
                     
-                    // 3. Call the API
                     const result = await fetchWithRetry(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    // 4. Extract generated image
-                    const aiBase64 = canvasApiKey 
-                        ? result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data
-                        : result.generatedImage;
+                    const aiBase64 = result.generatedImage;
 
                     if (!aiBase64) {
-                        throw new Error("No image data returned from AI");
+                        throw new Error("No image data returned from our server.");
                     }
 
-                    // 5. Draw the AI image to the canvas
+                    // 3. Draw AI generated image onto the main canvas
                     const aiImg = new Image();
                     aiImg.onload = () => {
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(aiImg, 0, 0, 400, 400);
 
-                        // Add Cyan Neon Border
+                        // Overlay Cyan Neon Border
                         ctx.lineWidth = 20;
                         ctx.strokeStyle = '#00FFFF';
                         ctx.strokeRect(0, 0, 400, 400);
 
-                        // Add Watermark Text
+                        // Overlay Watermark Text
                         ctx.fillStyle = '#00FFFF';
                         ctx.font = 'bold 20px Oswald';
                         ctx.textAlign = 'right';
@@ -656,14 +634,14 @@
                 } catch (error) {
                     console.error("Generation Error:", error);
                     loader.style.display = 'none';
-                    statusText.innerText = "AI Generation failed. The network might be busy.";
+                    statusText.innerText = `Error: ${error.message || 'AI Generation failed. Check key limits.'}`;
                     generateBtn.disabled = false;
                 }
             };
 
             img.onerror = () => {
                 loader.style.display = 'none';
-                statusText.innerText = "Error loading profile. Is the X handle correct?";
+                statusText.innerText = "Error loading profile image. Check the X handle!";
                 generateBtn.disabled = false;
             };
         }
