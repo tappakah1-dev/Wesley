@@ -525,7 +525,11 @@
         }
 
         // --- PFP Generator Logic (AI Powered) ---
-        const apiKey = ""; // API key is securely injected by the execution environment
+        // The empty string below allows the Canvas to inject its secure key for previewing.
+        // When deployed to Vercel, it will remain empty, triggering the code 
+        // to securely route the request through your Vercel Serverless Function instead.
+        const canvasApiKey = ""; 
+        
         const canvas = document.getElementById('pfpCanvas');
         const ctx = canvas.getContext('2d');
         const generateBtn = document.getElementById('generatePfpBtn');
@@ -583,21 +587,27 @@
 
                     statusText.innerText = "AI is redesigning you as the GOAT... This takes a few seconds.";
 
-                    // 2. Prepare payload for Gemini API
-                    // UPDATED PROMPT: Strictly enforce keeping the original face.
-                    const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
+                    let url, payload;
 
-                    const payload = {
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { mimeType: "image/jpeg", data: base64Original } }
-                            ]
-                        }],
-                        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-                    };
+                    if (canvasApiKey) {
+                        // Canvas Environment: Use injected key to call Google API directly
+                        const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
 
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+                        payload = {
+                            contents: [{
+                                parts: [
+                                    { text: prompt },
+                                    { inlineData: { mimeType: "image/jpeg", data: base64Original } }
+                                ]
+                            }],
+                            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+                        };
+                        url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${canvasApiKey}`;
+                    } else {
+                        // Vercel Environment: Call your secure backend API route
+                        url = '/api/generate-pfp';
+                        payload = { image: base64Original };
+                    }
                     
                     // 3. Call the API
                     const result = await fetchWithRetry(url, {
@@ -607,7 +617,9 @@
                     });
 
                     // 4. Extract generated image
-                    const aiBase64 = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    const aiBase64 = canvasApiKey 
+                        ? result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data
+                        : result.generatedImage;
 
                     if (!aiBase64) {
                         throw new Error("No image data returned from AI");
