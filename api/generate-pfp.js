@@ -47,8 +47,8 @@ export default async function handler(req, res) {
 
         const prompt = "Preserve the facial features and head orientation of the person in the input image. Add a high-quality, artistic, decorative silver goat horns accessory on their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
 
-        // Call the dedicated image-to-image endpoint synchronously
-        const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl/image-to-image?sync_mode=true", {
+        // 1. Swapped endpoint to fal.run (synchronous) instead of queue.fal.run (asynchronous)
+        const response = await fetch("https://fal.run/fal-ai/fast-sdxl/image-to-image", {
             method: "POST",
             headers: {
                 "Authorization": `Key ${apiKey}`,
@@ -66,7 +66,49 @@ export default async function handler(req, res) {
             throw new Error(`Fal.ai API responded with status ${response.status}: ${errorDetails}`);
         }
 
-        const result = await response.json();
+        let result = await response.json();
+
+        // 2. Fallback: If Fal.ai forces the request into a queue, we poll the queue status until complete
+        if (result.status === "IN_QUEUE" || result.status_url) {
+            const statusUrl = result.status_url;
+            const responseUrl = result.response_url;
+            let completed = false;
+            let attempts = 0;
+            const maxAttempts = 15; // Wait up to 15 seconds
+
+            while (!completed && attempts < maxAttempts) {
+                // Wait 1 second between checks
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+
+                const statusResponse = await fetch(statusUrl, {
+                    headers: { "Authorization": `Key ${apiKey}` }
+                });
+
+                if (statusResponse.ok) {
+                    const statusData = await statusResponse.json();
+                    if (statusData.status === "COMPLETED") {
+                        completed = true;
+                    } else if (statusData.status === "FAILED") {
+                        throw new Error(`Fal.ai generation failed inside the processing queue.`);
+                    }
+                }
+            }
+
+            if (!completed) {
+                throw new Error("Fal.ai processing queue timed out (took longer than 15 seconds).");
+            }
+
+            // Fetch the final finished output once queue is completed
+            const finalResponse = await fetch(responseUrl, {
+                headers: { "Authorization": `Key ${apiKey}` }
+            });
+            if (!finalResponse.ok) {
+                throw new Error("Failed to retrieve final image payload from Fal.ai queue.");
+            }
+            result = await finalResponse.json();
+        }
+
         const imageUrl = result.images?.[0]?.url;
 
         if (!imageUrl) {
