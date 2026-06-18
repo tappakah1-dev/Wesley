@@ -29,15 +29,25 @@ export default async function handler(req, res) {
         });
     }
 
-    const { image } = req.body;
-    if (!image) {
-        return res.status(400).json({ error: 'No image provided in the request body.' });
-    }
-
     try {
-        const prompt = "Preserve the facial features and head orientation of the person in the input image. Add realistic curved goat horns growing from their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
+        // Safe body parsing inside the try/catch to prevent server crashes
+        let body = req.body;
+        if (typeof body === 'string') {
+            try {
+                body = JSON.parse(body);
+            } catch (parseError) {
+                return res.status(400).json({ error: 'Invalid JSON body provided.' });
+            }
+        }
 
-        // Corrected: Combined the dedicated image-to-image endpoint path with the sync_mode query parameter
+        const image = body?.image;
+        if (!image) {
+            return res.status(400).json({ error: 'No image provided in the request body.' });
+        }
+
+        const prompt = "Preserve the facial features and head orientation of the person in the input image. Add a high-quality, artistic, decorative silver goat horns accessory on their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
+
+        // Call the dedicated image-to-image endpoint synchronously
         const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl/image-to-image?sync_mode=true", {
             method: "POST",
             headers: {
@@ -47,8 +57,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
-                strength: 0.45, // Keeps 55% of the original facial likeness while adding horns, jersey & glow
-                enable_safety_checker: false // Disable the safety checker to stop false-positives from wasting your balance
+                strength: 0.45 // Keeps 55% of the original facial likeness while adding horns, jersey & glow
             })
         });
 
@@ -61,12 +70,12 @@ export default async function handler(req, res) {
         const imageUrl = result.images?.[0]?.url;
 
         if (!imageUrl) {
-            throw new Error("No image URL returned from Fal.ai. Ensure prompt/parameters do not trigger safety blocks.");
+            throw new Error(`No image URL returned from Fal.ai. Full API response: ${JSON.stringify(result)}`);
         }
 
-        // Fetch the generated image and convert it directly to Base64 to supply your Canvas frontend
+        // Fetch the generated image and convert it directly to Base64 (safely wrapped in Uint8Array)
         const imgBuffer = await fetch(imageUrl).then(res => res.arrayBuffer());
-        const base64Image = Buffer.from(imgBuffer).toString('base64');
+        const base64Image = Buffer.from(new Uint8Array(imgBuffer)).toString('base64');
 
         res.status(200).json({ generatedImage: base64Image });
 
