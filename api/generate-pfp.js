@@ -45,14 +45,14 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided in the request body.' });
         }
 
-        // Heavy front-loading of visual elements in the prompt so SDXL processes them with top priority.
-        const prompt = "A highly detailed, epic professional sports portrait of the person. ADD horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. Set against a dramatic, glowing Argentina football stadium background with cheering fans, intense neon cyan lighting, and an electric aura. Maintain the exact face direction, pose, features, and identity of the person from the input image, but completely replace their clothes and background.";
+        // Highly descriptive, powerful prompt optimized for Flux's natural language comprehension
+        const prompt = "A highly detailed, professional sports portrait of the person from the input image. They are wearing large, realistic curved silver goat horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. They are standing in a dramatic, glowing football stadium at night with cheering crowds, intense neon cyan lighting, and an electric aura. Maintain the exact face structure, features, expression, and identity of the person, but completely transform their clothes and background.";
         
-        // Negative prompt to strictly forbid returning the original background or unedited clothing
-        const negativePrompt = "original background, plain background, original clothing, unedited clothes, human head with no horns, bad quality, blurry, deformed anatomy";
+        // Negative prompt to ensure clean rendering on Flux
+        const negativePrompt = "blurry, low quality, distorted face, deformed features, bad anatomy";
 
-        // Call the dedicated image-to-image endpoint synchronously
-        const response = await fetch("https://fal.run/fal-ai/fast-sdxl/image-to-image", {
+        // Swapped to the highly-advanced, state-of-the-art fal-ai/flux/dev/image-to-image model
+        const response = await fetch("https://fal.run/fal-ai/flux/dev/image-to-image", {
             method: "POST",
             headers: {
                 "Authorization": `Key ${apiKey}`,
@@ -62,9 +62,9 @@ export default async function handler(req, res) {
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
                 negative_prompt: negativePrompt,
-                strength: 0.7, // Increased to 0.78 to give the AI optimal freedom to replace the shirt and background, while preserving the face structure
-                guidance_scale: 8.5, // Increased guidance scale to force strict adherence to the new prompt parameters
-                num_inference_steps: 35
+                strength: 0.75, // Perfect sweet-spot for Flux: replaces background/clothing while keeping the face recognizable
+                guidance_scale: 7.5,
+                num_inference_steps: 30
             })
         });
 
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
             const responseUrl = result.response_url;
             let completed = false;
             let attempts = 0;
-            const maxAttempts = 15; // Wait up to 15 seconds
+            const maxAttempts = 20; // Flux Dev might take a few seconds longer, so we extend wait time
 
             while (!completed && attempts < maxAttempts) {
                 // Wait 1 second between checks
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
             }
 
             if (!completed) {
-                throw new Error("Fal.ai processing queue timed out (took longer than 15 seconds).");
+                throw new Error("Fal.ai processing queue timed out (took longer than 20 seconds).");
             }
 
             // Fetch the final finished output once queue is completed
