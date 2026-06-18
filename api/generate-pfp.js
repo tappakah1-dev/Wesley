@@ -8,12 +8,12 @@ export default async function handler(req, res) {
     const apiKey = process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
-        return res.status(500).json({ error: 'Server configuration error: Missing API Key' });
+        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.' });
     }
 
     const { image } = req.body;
     if (!image) {
-        return res.status(400).json({ error: 'No image provided.' });
+        return res.status(400).json({ error: 'No image provided in the request body.' });
     }
 
     try {
@@ -39,14 +39,15 @@ export default async function handler(req, res) {
         });
 
         if (!response.ok) {
-            throw new Error(`Google API responded with status: ${response.status}`);
+            const errorDetails = await response.text();
+            throw new Error(`Google API responded with status ${response.status}: ${errorDetails}`);
         }
 
         const result = await response.json();
         const generatedImage = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
 
         if (!generatedImage) {
-            throw new Error("No image returned from Gemini.");
+            throw new Error("No image returned from Gemini. Response structure might have changed or generation was blocked by safety filters.");
         }
 
         // Send the secure image back to the frontend
@@ -54,6 +55,7 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("API Route Error:", error);
-        res.status(500).json({ error: 'Failed to generate image on the server.' });
+        // Forward the explicit error message to the frontend for easy debugging
+        res.status(500).json({ error: error.message || error.toString() });
     }
 }
