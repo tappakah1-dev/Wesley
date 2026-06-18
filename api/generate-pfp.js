@@ -1,3 +1,10 @@
+// Vercel Serverless Function Configuration
+export const config = {
+    // Force this function to run in the US East (Washington, D.C.) region 
+    // to bypass EU/UK regional blocks on Google's Imagen API.
+    regions: ['iad1'], 
+};
+
 export default async function handler(req, res) {
     // Enable CORS (Cross-Origin Resource Sharing) headers
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -25,7 +32,7 @@ export default async function handler(req, res) {
     if (!apiKey) {
         return res.status(500).json({ 
             error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.',
-            debugDetails: 'Please ensure you added GEMINI_API_KEY under Settings > Environment Variables in your Vercel project and redeployed.'
+            debugDetails: 'Please ensure you added GEMINI_API_KEY (starting with AIzaSy) under Settings > Environment Variables in your Vercel project and redeployed.'
         });
     }
 
@@ -37,7 +44,7 @@ export default async function handler(req, res) {
     try {
         const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face to look like Lionel Messi. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic goat horns growing from their head. 2) Dress them in a light blue and white striped football jersey (Argentina style) with the number 10. 3) Add a glowing neon cyan aura around them. The final image should look like a high-quality digital portrait of the original person cosplaying as the GOAT.";
 
-        // Format payload specifically for the Imagen predict endpoint
+        // Format payload specifically for the cost-effective Imagen 3 predict endpoint
         const payload = {
             instances: [
                 {
@@ -54,7 +61,7 @@ export default async function handler(req, res) {
             }
         };
 
-        // Standard, production-supported Imagen 3.0 endpoint in Google AI Studio
+        // Standard, highly affordable production-supported Imagen 3.0 endpoint in Google AI Studio
         const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
         
         // Forward the request to Google's Imagen API
