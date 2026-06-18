@@ -47,7 +47,8 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
-                strength: 0.45 // Keeps 55% of the original facial likeness while adding horns, jersey & glow
+                strength: 0.45, // Keeps 55% of the original facial likeness while adding horns, jersey & glow
+                enable_safety_checker: false // Disable the safety checker to stop false-positives from wasting your balance
             })
         });
 
