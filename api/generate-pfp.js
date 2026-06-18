@@ -37,8 +37,8 @@ export default async function handler(req, res) {
     try {
         const prompt = "Preserve the facial features and head orientation of the person in the input image. Add realistic curved goat horns growing from their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
 
-        // Corrected Fal.ai SDXL endpoint with sync_mode passed as a URL query parameter
-        const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl?sync_mode=true", {
+        // Corrected: Combined the dedicated image-to-image endpoint path with the sync_mode query parameter
+        const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl/image-to-image?sync_mode=true", {
             method: "POST",
             headers: {
                 "Authorization": `Key ${apiKey}`,
