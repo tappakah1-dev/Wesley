@@ -43,6 +43,52 @@
             display: block;
         }
 
+        .x-community-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(5, 10, 21, 0.75);
+            border: 2px solid var(--neon-cyan);
+            color: #ffffff;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .x-community-btn:hover {
+            background: rgba(0, 255, 255, 0.15);
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+        }
+
+        .x-community-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--neon-cyan);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            .x-community-btn {
+                top: 12px;
+                right: 12px;
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+        }
+
         /* Contract Address Box */
         .ca-container {
             margin-top: -30px;
@@ -410,6 +456,10 @@
     <!-- Hero / Banner -->
     <div class="banner-container">
         <img src="https://i.ibb.co/4wryr4h2/Gemini-Generated-Image-wczzv0wczzv0wczz.png" alt="$WESLEY Community Take Over Banner">
+        <a href="https://x.com/i/communities/1979231683519090892" target="_blank" rel="noopener noreferrer" class="x-community-btn">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            X Community
+        </a>
     </div>
 
     <!-- Contract Address -->
@@ -654,7 +704,3 @@
     </script>
 </body>
 </html>
-
-
-
-
