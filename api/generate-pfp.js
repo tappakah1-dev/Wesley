@@ -1,8 +1,8 @@
 // Vercel Serverless Function Configuration
 export const config = {
-    // Force this function to run in the US East (Washington, D.C.) region 
-    // to bypass potential regional blocks or restrictions on Google's Gemini API.
-    regions: ['iad1'], 
+    // Force this function to run in the US East (Washington, D.C.) region
+    // to bypass potential regional blocks or restrictions on Google's API.
+    regions: ['iad1'],
 };
 
 export default async function handler(req, res) {
@@ -28,9 +28,9 @@ export default async function handler(req, res) {
 
     // Securely grab the Gemini API key from Vercel's Environment Variables
     const apiKey = process.env.GEMINI_API_KEY;
-    
+
     if (!apiKey) {
-        return res.status(500).json({ 
+        return res.status(500).json({
             error: 'Server configuration error: GEMINI_API_KEY environment variable is missing on Vercel.',
             debugDetails: 'Please ensure you added GEMINI_API_KEY (starting with AIzaSy) under Settings > Environment Variables in your Vercel project and redeployed.'
         });
@@ -52,26 +52,35 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided in the request body.' });
         }
 
-        // Restructured prompt optimized for Gemini 2.5 Flash Image understanding
-        const prompt = "CRITICAL: Preserve the EXACT facial features, identity, and likeness of the original person in the provided image. DO NOT change their face. Instead, 'GOATify' THIS specific person by doing only the following: 1) Add realistic curved silver goat horns on their head. 2) Dress them in an Argentina national football team light blue and white striped jersey with the number 10. 3) Place them in a dramatic, glowing football stadium at night with cheering crowds, intense neon cyan lighting, and an electric aura. Replace their original clothes and background completely.";
+        // Descriptive prompt for the image edit
+        const prompt = "Edit this photo: give the person majestic large curved silver goat horns on their head, and put them in an Argentina national football team light blue and white striped jersey with the number 10. Change the background to a dramatic, glowing football stadium at night with cheering crowds, intense neon cyan lighting, and an electric aura. Keep the person's exact face, pose, expression, and identity unchanged — only replace their clothing and the background.";
 
-        // Correct multimodal image generation payload for Gemini 2.5 Flash Image
+        // Gemini 2.5 Flash Image ("Nano Banana") uses generateContent and accepts
+        // an inline image + text prompt together, returning an edited image back.
+        // This replaces the deprecated Imagen 3 ":predict" endpoint, which doesn't
+        // support image-conditioned edits in the way this app needs.
         const payload = {
-            contents: [{
-                parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: "image/jpeg", data: image } }
-                ]
-            }],
+            contents: [
+                {
+                    parts: [
+                        { text: prompt },
+                        {
+                            inline_data: {
+                                mime_type: "image/jpeg",
+                                data: image
+                            }
+                        }
+                    ]
+                }
+            ],
             generationConfig: {
                 responseModalities: ["IMAGE"]
             }
         };
 
-        // Standard, correct endpoint for gemini-2.5-flash-image-preview
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-        
-        // Forward the request to Google
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+
+        // Forward the request to Google's Gemini API
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,16 +95,18 @@ export default async function handler(req, res) {
             } catch (e) {
                 errorDetails = await response.text();
             }
-            throw new Error(`Google API responded with status ${response.status}: ${errorDetails}`);
+            throw new Error(`Google Gemini API responded with status ${response.status}: ${errorDetails}`);
         }
 
         const result = await response.json();
-        
-        // Extract the generated base64 image data from the multimodal response content parts
-        const generatedImage = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+        // Gemini returns content as parts; find the part containing inline image data
+        const parts = result?.candidates?.[0]?.content?.parts || [];
+        const imagePart = parts.find(p => p.inlineData?.data || p.inline_data?.data);
+        const generatedImage = imagePart?.inlineData?.data || imagePart?.inline_data?.data;
 
         if (!generatedImage) {
-            throw new Error(`No image returned from Gemini 2.5 Flash Image. Full response: ${JSON.stringify(result)}`);
+            throw new Error(`No image returned from Gemini. Full response: ${JSON.stringify(result)}`);
         }
 
         // Send the secure image back to the frontend
@@ -103,9 +114,9 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("API Route Error:", error);
-        res.status(500).json({ 
-            error: 'Failed to generate image on the server using Gemini 2.5.', 
-            message: error.message || error.toString() 
+        res.status(500).json({
+            error: 'Failed to generate image on the server using Gemini.',
+            message: error.message || error.toString()
         });
     }
 }
