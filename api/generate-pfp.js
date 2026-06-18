@@ -37,8 +37,8 @@ export default async function handler(req, res) {
     try {
         const prompt = "Preserve the facial features and head orientation of the person in the input image. Add realistic curved goat horns growing from their head. Dress them in an Argentina national football team light blue and white striped jersey with the number 10, surrounded by a glowing neon cyan aura. High-quality digital art, epic studio portrait, matching lighting.";
 
-        // Use fal-ai/fast-sdxl/image-to-image for lightning-fast generations
-        const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl/image-to-image", {
+        // Corrected Fal.ai SDXL endpoint with sync_mode passed as a URL query parameter
+        const response = await fetch("https://queue.fal.run/fal-ai/fast-sdxl?sync_mode=true", {
             method: "POST",
             headers: {
                 "Authorization": `Key ${apiKey}`,
@@ -47,8 +47,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
-                strength: 0.45, // Keeps 55% of the original facial likeness while adding horns, jersey & glow
-                sync_mode: true
+                strength: 0.45 // Keeps 55% of the original facial likeness while adding horns, jersey & glow
             })
         });
 
@@ -61,10 +60,10 @@ export default async function handler(req, res) {
         const imageUrl = result.images?.[0]?.url;
 
         if (!imageUrl) {
-            throw new Error("No image URL returned from Fal.ai.");
+            throw new Error("No image URL returned from Fal.ai. Ensure prompt/parameters do not trigger safety blocks.");
         }
 
-        // Fetch the generated image and convert it directly to Base64 to supply your index.html canvas
+        // Fetch the generated image and convert it directly to Base64 to supply your Canvas frontend
         const imgBuffer = await fetch(imageUrl).then(res => res.arrayBuffer());
         const base64Image = Buffer.from(imgBuffer).toString('base64');
 
