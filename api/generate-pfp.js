@@ -45,8 +45,11 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'No image provided in the request body.' });
         }
 
-        // Restructured prompt: Highlight major modifications first so the AI prioritizes them, then retain likeness
-        const prompt = "A high-quality digital masterpiece portrait of the person in the input image, styled as a soccer superstar. They are wearing majestic, highly-detailed silver goat horns growing from their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. They are surrounded by an intense glowing neon cyan aura. Epic lighting, realistic portrait photography, retaining their facial structure and likeness.";
+        // Heavy front-loading of visual elements in the prompt so SDXL processes them with top priority.
+        const prompt = "A highly detailed, epic professional sports portrait of the person. They are wearing majestic, large curved silver goat horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. Set against a dramatic, glowing Argentina football stadium background with cheering fans, intense neon cyan lighting, and an electric aura. Maintain the exact face direction, pose, features, and identity of the person from the input image, but completely replace their clothes and background.";
+        
+        // Negative prompt to strictly forbid returning the original background or unedited clothing
+        const negativePrompt = "original background, plain background, original clothing, unedited clothes, human head with no horns, bad quality, blurry, deformed anatomy";
 
         // Call the dedicated image-to-image endpoint synchronously
         const response = await fetch("https://fal.run/fal-ai/fast-sdxl/image-to-image", {
@@ -58,7 +61,10 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
-                strength: 0.70 // Increased to 0.70 to give the AI enough structural freedom to add horns and jersey while keeping your face shape
+                negative_prompt: negativePrompt,
+                strength: 0.78, // Increased to 0.78 to give the AI optimal freedom to replace the shirt and background, while preserving the face structure
+                guidance_scale: 8.5, // Increased guidance scale to force strict adherence to the new prompt parameters
+                num_inference_steps: 35
             })
         });
 
