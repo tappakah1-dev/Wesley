@@ -242,7 +242,7 @@
         }
 
         @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
+            from {bottom: 30px; opacity: 0;}
             to {bottom: 0; opacity: 0;}
         }
 
@@ -526,7 +526,7 @@
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- PFP Generator Logic (AI Powered via Gemini Imagen) ---
+        // --- PFP Generator Logic (AI Powered via Gemini 2.5 Flash Image) ---
         const canvas = document.getElementById('pfpCanvas');
         const ctx = canvas.getContext('2d');
         const generateBtn = document.getElementById('generatePfpBtn');
