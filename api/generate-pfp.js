@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         }
 
         // Heavy front-loading of visual elements in the prompt so SDXL processes them with top priority.
-        const prompt = "A highly detailed, epic professional sports portrait of the person. They are wearing majestic, large curved silver goat horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. Set against a dramatic, glowing Argentina football stadium background with cheering fans, intense neon cyan lighting, and an electric aura. Maintain the exact face direction, pose, features, and identity of the person from the input image, but completely replace their clothes and background.";
+        const prompt = "A highly detailed, epic professional sports portrait of the person. ADD horns on their head, and wearing an Argentina national football team light blue and white striped jersey with the number 10. Set against a dramatic, glowing Argentina football stadium background with cheering fans, intense neon cyan lighting, and an electric aura. Maintain the exact face direction, pose, features, and identity of the person from the input image, but completely replace their clothes and background.";
         
         // Negative prompt to strictly forbid returning the original background or unedited clothing
         const negativePrompt = "original background, plain background, original clothing, unedited clothes, human head with no horns, bad quality, blurry, deformed anatomy";
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 image_url: `data:image/jpeg;base64,${image}`,
                 prompt: prompt,
                 negative_prompt: negativePrompt,
-                strength: 0.78, // Increased to 0.78 to give the AI optimal freedom to replace the shirt and background, while preserving the face structure
+                strength: 0.7, // Increased to 0.78 to give the AI optimal freedom to replace the shirt and background, while preserving the face structure
                 guidance_scale: 8.5, // Increased guidance scale to force strict adherence to the new prompt parameters
                 num_inference_steps: 35
             })
